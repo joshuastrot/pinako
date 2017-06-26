@@ -1,0 +1,6 @@
+Branches: [winry-stable, winry-testing]
+Cache:
+SSHKey:
+ServerAddress:
+URL:
+Username: 
