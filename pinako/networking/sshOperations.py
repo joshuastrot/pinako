@@ -24,8 +24,8 @@ from getpass import getpass
 def retrieveSSHPassword():
     """Retrieve the SSH password to unlock the ssh key"""
 
-    print("=> Please enter your SSH password")
-    password = getpass()
+    print("    => Please enter your SSH password")
+    password = getpass("    => Password: ")
 
     return password
 

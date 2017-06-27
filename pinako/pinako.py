@@ -33,12 +33,13 @@ if geteuid() == 0:
 
 #Set up the argument parser, add the needed options
 parser = argparse.ArgumentParser(description='Control the central repository of Winry Linux.')
-parser.add_argument('-i', "--init", type=str, metavar="PATH", help="Initialize the cache at the given absolute path")
-parser.add_argument('-p', "--print", action="store_true", help="Show the currently staged changes")
-parser.add_argument('-u', "--upload", action="store_true", help="Upload current repository changes")
-parser.add_argument('-d', "--download", action="store_true", help="Download changes from repository")
-parser.add_argument('-m', "--merge", action="store_true", help="Merge one branch into another")
-parser.add_argument('-c', "--compare", action="store_true", help="Compare one branch to another")
+parserGroup = parser.add_mutually_exclusive_group()
+parserGroup.add_argument('-i', "--init", type=str, metavar="PATH", help="Initialize the cache at the given absolute path")
+parserGroup.add_argument('-p', "--print", action="store_true", help="Show the currently staged changes")
+parserGroup.add_argument('-u', "--upload", action="store_true", help="Upload current repository changes")
+parserGroup.add_argument('-d', "--download", action="store_true", help="Download changes from repository")
+parserGroup.add_argument('-m', "--merge", action="store_true", help="Merge one branch into another")
+parserGroup.add_argument('-c', "--compare", action="store_true", help="Compare one branch to another")
 
 #Output help if no argument is passed, exit
 if len(argv) == 1:
@@ -61,8 +62,10 @@ if args.init:
         print("=> Error! Please use an absolute path for the cache")
         exit(1)
 
+    print("=> Initializing Pinako for your user.")
+
     #Set up the cache
-    print("=> Creating cache directories")
+    print("    => Creating cache directories")
     cacheOperations.createCache(args.init)
 
     #Configure the configuration file
@@ -72,8 +75,30 @@ if args.init:
     sshClient = sshOperations.connect(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
     #Load all the directories in the cache
-    print("=> Populating the cache with dummy files")
+    print("=> Updating cache.")
     for branch in configurationData["Branches"]:
         cacheOperations.updateCache(sshClient, branch, args.init)
 
+    sshClient.close()
     exit(0)
+
+elif args.download:
+    if not path.isdir(configurationData["Cache"]) or not path.isabs(configurationData["Cache"]):
+        print("=> Error! Cache path not set.")
+        exit(1)
+
+    print("=> Downloading server changes.")
+    print("    => Warning! This will delete any unpushed changes. Are you sure you would like to continue?")
+    confirmation = input("    =[Y/n]> ")
+
+    if confirmation and confirmation != "Y" and confirmation != "y":
+        print("=> Exiting.")
+        exit(0)
+
+    #Establish an SSH connection
+    sshClient = sshOperations.connect(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
+
+    #Load all the directories in the cache
+    print("=> Updating cache")
+    for branch in configurationData["Branches"]:
+        cacheOperations.updateCache(sshClient, branch, configurationData["Cache"])

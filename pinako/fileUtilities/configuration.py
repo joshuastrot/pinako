@@ -97,6 +97,10 @@ def loadConfiguration():
     try:
         with open(pinakoConfig, "r") as file:
             configurationContents = load(file)
+            if (not configurationContents["Username"] or not configurationContents["SSHKey"]\
+                or not configurationContents["ServerAddress"]) and not customConfiguration:
+
+                customConfiguration = configure()
     except IOError as e:
         print("=> Error! Could not load new configuration file.")
         print(e)
