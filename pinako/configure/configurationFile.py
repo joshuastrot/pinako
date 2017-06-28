@@ -17,12 +17,8 @@
 #   You should have received a copy of the GNU General Public License
 #   along with Pinako. If not, see <http://www.gnu.org/licenses/>.
 
-from os import path, environ, makedirs
-from shutil import copyfile
+from os import path, environ
 from yaml import load, dump
-from getpass import getuser
-
-from networking import verification
 
 def findXDGConfig():
     """Find the XDG config directory"""
@@ -34,44 +30,6 @@ def findXDGConfig():
         xdgConfig = path.expanduser("~") + "/.config"
     return xdgConfig
 
-def configure():
-    """Configure the configuration file"""
-
-    print("=> Now configuring for your user.")
-
-    #Ask about the location of SSH key
-    print("    => What is the absolute path to your SSH key?")
-    sshKey = input("".join(("    =[", path.expanduser("~"), "/.ssh/id_rsa]> ")))
-
-    #Check if defaulted and is absolute path
-    sshKey = "".join((path.expanduser("~"), "/.ssh/id_rsa")) if not sshKey else sshKey
-
-    if not path.isabs(sshKey):
-        print("=> Error! SSH Key path is not absolute. Please use an absolute path.")
-        exit(1)
-
-    #Ask about user name
-    print("    => What is the SSH username for your Pinako account")
-    username = input("".join(("    =[", getuser(), "]> ")))
-
-    #Check if defaulted
-    username = getuser() if not username else username
-
-    #Ask about Winry server address
-    print("    => What is the IP address of the Winry server?")
-    serverAddress = input("".join(("    => ")))
-
-    if not serverAddress or not verification.verifyAddress(serverAddress):
-        print("=> Error! Invalid IP address of the Winry Server")
-        exit(1)
-
-    return {
-        "ServerAddress": serverAddress,
-        "Username": username,
-        "SSHKey": sshKey
-    }
-
-
 
 def loadConfiguration():
     """Load the YAML configuration file for pinako"""
@@ -82,31 +40,22 @@ def loadConfiguration():
     pinakoConfig = "".join((xdgConfig, "/pinako/pinako.yaml"))
     pinakoDirectory = "".join((xdgConfig, "/pinako"))
 
-    #Make the pinako directory if not already created
-    if not path.isdir(pinakoDirectory):
-        makedirs(pinakoDirectory)
-
-    #Create a pinako config if not already present
+    #Error out if no configuration file.
     customConfiguration = {}
     if not path.isfile(pinakoConfig):
-        print("=> No user defined configuration file yet, creating one.")
-        copyfile("/usr/share/pinako/data/pinako.yaml", pinakoConfig)
-        customConfiguration = configure()
+        print("=> No user defined configuration file. Please create one.")
+        exit(1)
 
     #Load the pinako config file
     try:
         with open(pinakoConfig, "r") as file:
             configurationContents = load(file)
-            if (not configurationContents["Username"] or not configurationContents["SSHKey"]\
-                or not configurationContents["ServerAddress"]) and not customConfiguration:
-
-                customConfiguration = configure()
     except IOError as e:
-        print("=> Error! Could not load new configuration file.")
+        print("=> Error! Could not load configuration file.")
         print(e)
         exit(1)
 
-    return {**configurationContents, **customConfiguration}
+    return configurationContents
 
 def writeConfiguration(cachePath, configuration):
     """Write a YAML configuration to the user specified configuration file"""

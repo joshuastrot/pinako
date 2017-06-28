@@ -1,5 +1,8 @@
 Branches: [winry-stable, winry-testing]
+Architectures: [i686, x86_64]
 Cache:
 SSHKey:
 ServerAddress:
 Username:
+PackagerName:
+PackagerEmail:

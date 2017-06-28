@@ -15,4 +15,4 @@
 #   You should have received a copy of the GNU General Public License
 #   along with Pinako. If not, see <http://www.gnu.org/licenses/>.
 
-__all__=["download", "sshOperations", "verification"]
+__all__ = ["initialize", "search", "prepare"]
