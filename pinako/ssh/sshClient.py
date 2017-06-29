@@ -66,6 +66,13 @@ class sshClient():
         """Lock the server to perform uploads"""
         print("=> Locking the server")
 
+        (stdin, stdout, stderr) = self.runCommand("cat /srv/http/lock")
+        if stdout and not stderr:
+            print("=> Error! Database is already locked. Information:")
+            for line in stdout.readlines():
+                print(line.strip())
+            exit(1)
+
         try:
             with open("/tmp/lock", "w") as lock:
                 time = datetime.now().time()

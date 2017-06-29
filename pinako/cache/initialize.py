@@ -20,7 +20,7 @@
 from os import makedirs, path, symlink
 from shutil import rmtree
 
-def initializeCache(target, branches = ["winry-stable", "winry-testing"], architectures = ["i686", "x86_64"]):
+def initializeCache(target, branches = ["winry-stable", "winry-testing"]):
     """Initialize a cache with the default files."""
 
     if path.isdir(target):
@@ -38,14 +38,13 @@ def initializeCache(target, branches = ["winry-stable", "winry-testing"], archit
     makedirs("%(target)s/pool" % locals(), exist_ok=True)
 
     for branch in branches:
-        for arch in architectures:
-            makedirs("%(target)s/%(branch)s/%(arch)s" % locals(), exist_ok=True)
+            makedirs("%(target)s/%(branch)s" % locals(), exist_ok=True)
 
-def loadFiles(sshClient, target, branches = ["winry-stable", "winry-testing"], architectures = ["i686", "x86_64"]):
+def loadFiles(sshClient, target, branches = ["winry-stable", "winry-testing"]):
     """Initialize the cache with it's needed directories"""
 
     #Initialize an empty cache
-    initializeCache(target, branches, architectures)
+    initializeCache(target, branches)
 
     #Grab list of pool files
     poolFiles = sshClient.runCommand("ls /srv/http/pool")[1].readlines()
@@ -57,22 +56,21 @@ def loadFiles(sshClient, target, branches = ["winry-stable", "winry-testing"], a
 
     #Populate the branches
     for branch in branches:
-        for arch in architectures:
-            filesList = sshClient.runCommand("find /srv/http/%(branch)s/%(arch)s -mindepth 1 ! -type l" % locals())[1].readlines()
-            linksList = sshClient.runCommand("find /srv/http/%(branch)s/%(arch)s -mindepth 1 -type l" % locals())[1].readlines()
-            filesList = [files.strip() for files in filesList]
-            linksList = [links.strip() for links in linksList]
+        filesList = sshClient.runCommand("find /srv/http/%(branch)s -mindepth 1 ! -type l" % locals())[1].readlines()
+        linksList = sshClient.runCommand("find /srv/http/%(branch)s -mindepth 1 -type l" % locals())[1].readlines()
+        filesList = [files.strip() for files in filesList]
+        linksList = [links.strip() for links in linksList]
 
-            #Download the databases
-            for file in filesList:
-                fileName = file.split("/")[-1]
-                linkName = fileName.replace(".tar.gz", "")
-                sshClient.down("%(target)s/%(branch)s/%(arch)s/%(fileName)s" % locals(), file)
+        #Download the databases
+        for file in filesList:
+            fileName = file.split("/")[-1]
+            linkName = fileName.replace(".tar.gz", "")
+            sshClient.down("%(target)s/%(branch)s/%(fileName)s" % locals(), file)
 
-                #Make symbolic links for the databases
-                symlink("%(fileName)s" % locals(), "%(target)s/%(branch)s/%(arch)s/%(linkName)s" % locals())
+            #Make symbolic links for the databases
+            symlink("%(fileName)s" % locals(), "%(target)s/%(branch)s/%(linkName)s" % locals())
 
-            for file in linksList:
-                fileName = file.split("/")[-1]
-                if file.endswith(".xz"):
-                    symlink("../../pool/%(fileName)s" % locals(), "%(target)s/%(branch)s/%(arch)s/%(fileName)s" % locals())
+        for file in linksList:
+            fileName = file.split("/")[-1]
+            if file.endswith(".xz"):
+                symlink("../../pool/%(fileName)s" % locals(), "%(target)s/%(branch)s/%(fileName)s" % locals())

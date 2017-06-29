@@ -25,7 +25,7 @@ from subprocess import call
 from glob import glob
 from datetime import datetime
 
-def prepareCache(target, newPackages, branches = ["winry-stable", "winry-testing"], architectures = ["i686", "x86_64"]):
+def prepareCache(target, newPackages, branches = ["winry-stable", "winry-testing"]):
     """
     Prepare the database for uploads by moving new files to the pool, making symlinks, and generating new databases
     """
@@ -37,30 +37,29 @@ def prepareCache(target, newPackages, branches = ["winry-stable", "winry-testing
         packageSigName = packageSig.split("/")[-1]
         if not path.isfile("%(target)s/pool/%(packageName)s" % locals()):
             move(package, "%(target)s/pool/%(packageName)s" % locals())
-            symlink("../../pool/%(packageName)s" % locals(), package)
+            symlink("../pool/%(packageName)s" % locals(), package)
         else:
             remove(package)
-            symlink("../../pool/%(packageName)s" % locals(), package)
+            symlink("../pool/%(packageName)s" % locals(), package)
 
         if not path.isfile("%(target)s/pool/%(packageSigName)s" % locals()):
             move(packageSig, "%(target)s/pool/%(packageSigName)s" % locals())
-            symlink("../../pool/%(packageSigName)s" % locals(), packageSig)
+            symlink("../pool/%(packageSigName)s" % locals(), packageSig)
         else:
             remove(packageSig)
-            symlink("../../pool/%(packageSigName)s" % locals(), packageSig)
+            symlink("../pool/%(packageSigName)s" % locals(), packageSig)
 
-def generateDB(target, branches = ["winry-stable", "winry-testing"], architectures = ["i686", "x86_64"]):
+def generateDB(target, branches = ["winry-stable", "winry-testing"]):
     """Regenerate the databases with repo-add"""
 
     print("=> Regenerating package Databases.")
 
     for branch in branches:
-        for arch in architectures:
-            call(["repo-add", "-q", "-n", "%(target)s/%(branch)s/%(arch)s/%(branch)s.db.tar.gz" % locals()] + glob("%(target)s/%(branch)s/%(arch)s/*.xz" % locals()))
-            if path.exists("%(target)s/%(branch)s/%(arch)s/%(branch)s.db.tar.gz.old" % locals()):
-                remove("%(target)s/%(branch)s/%(arch)s/%(branch)s.db.tar.gz.old" % locals())
-            if path.exists("%(target)s/%(branch)s/%(arch)s/%(branch)s.files.tar.gz.old" % locals()):
-                remove("%(target)s/%(branch)s/%(arch)s/%(branch)s.files.tar.gz.old" % locals())
+        call(["repo-add", "-q", "-n", "%(target)s/%(branch)s/%(branch)s.db.tar.gz" % locals()] + glob("%(target)s/%(branch)s/*.xz" % locals()))
+        if path.exists("%(target)s/%(branch)s/%(branch)s.db.tar.gz.old" % locals()):
+            remove("%(target)s/%(branch)s/%(branch)s.db.tar.gz.old" % locals())
+        if path.exists("%(target)s/%(branch)s/%(branch)s.files.tar.gz.old" % locals()):
+            remove("%(target)s/%(branch)s/%(branch)s.files.tar.gz.old" % locals())
 
 def compress(target):
     """Compress the repository into a tar file for upload"""
@@ -89,6 +88,17 @@ def mergeBranches(target, initialBranch, targetBranch):
 
     print("=> Merging %(initialBranch)s -> %(targetBranch)s" % locals())
 
+    #Copy over the branch
     if path.exists("%(target)s/%(targetBranch)s" % locals()):
         rmtree("%(target)s/%(targetBranch)s" % locals())
     copytree("%(target)s/%(initialBranch)s" % locals(), "%(target)s/%(targetBranch)s" % locals(), symlinks=True)
+
+    #Remove the old databases from the directory
+    if path.exists("%(target)s/%(targetBranch)s/%(initialBranch)s.db" % locals()):
+        remove("%(target)s/%(targetBranch)s/%(initialBranch)s.db" % locals())
+    if path.exists("%(target)s/%(targetBranch)s/%(initialBranch)s.db.tar.gz" % locals()):
+        remove("%(target)s/%(targetBranch)s/%(initialBranch)s.db.tar.gz" % locals())
+    if path.exists("%(target)s/%(targetBranch)s/%(initialBranch)s.files" % locals()):
+        remove("%(target)s/%(targetBranch)s/%(initialBranch)s.files" % locals())
+    if path.exists("%(target)s/%(targetBranch)s/%(initialBranch)s.files.tar.gz" % locals()):
+        remove("%(target)s/%(targetBranch)s/%(initialBranch)s.files.tar.gz" % locals())

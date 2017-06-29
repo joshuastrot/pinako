@@ -41,7 +41,9 @@ parserGroup.add_argument('-s', "--show", action="store_true", help="Show the cur
 parserGroup.add_argument('-v', "--verify", action="store_true", help="Verify the repository is safe to upload")
 parserGroup.add_argument('-u', "--upload", action="store_true", help="Upload current repository changes")
 parserGroup.add_argument('-m', "--merge", type=str, nargs=2, metavar=("SOURCE", "TARGET"), help="Merge one branch into another")
-parserGroup.add_argument('-c', "--compare", action="store_true", help="Compare one branch to another")
+parserGroup.add_argument('-c', "--compare", type=str, nargs=2, metavar=("SOURCE", "TARGET"), help="Compare one branch to another")
+parserGroup.add_argument('-f', "--unlock", action="store_true", help="Force unlock the server")
+parserGroup.add_argument('-l', "--lock", action="store_true", help="Force lock the server")
 
 #Output help if no argument is passed, exit
 if len(argv) == 1:
@@ -57,69 +59,54 @@ args=parser.parse_args()
 #Load the configuration file
 configurationData = configurationFile.loadConfiguration()
 
+#Set the targetDirectory
+targetDirectory = configurationData["Cache"]
+
 #Begin running the main program
 if args.init:
+    #Override targetDirectory
     targetDirectory = args.init
 
     #Instantiate the SSHClient object
     sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
     #Load all the files for the cache
-    initialize.loadFiles(sshClient, targetDirectory, configurationData["Branches"], configurationData["Architectures"])
+    initialize.loadFiles(sshClient, targetDirectory, configurationData["Branches"])
 
     #Write the new cache location
     configurationFile.writeConfiguration(targetDirectory, configurationData)
 
 elif args.download:
-    targetDirectory = configurationData["Cache"]
-
     #Instantiate the SSHClient object
     sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
     #Load all the files for the Cache
-    initialize.loadFiles(sshClient, targetDirectory, configurationData["Branches"], configurationData["Architectures"])
+    initialize.loadFiles(sshClient, targetDirectory, configurationData["Branches"])
 
 elif args.show:
-    targetDirectory = configurationData["Cache"]
-
     #Search the cache for new files
-    search.regular(targetDirectory, configurationData["Branches"], configurationData["Architectures"])
+    search.regular(targetDirectory, configurationData["Branches"])
 
 elif args.verify:
-    targetDirectory = configurationData["Cache"]
-
     #Verify the repository
-    safe = search.verifyRepository(targetDirectory, configurationData["Branches"], configurationData["Architectures"])
-
-    if not safe:
-        print("=> Repository is not safe!")
-    else:
-        print("=> Repository appears safe. Use your best judgement though.")
+    safe = search.verifyRepository(targetDirectory, configurationData["Branches"])
 
 elif args.upload:
-    targetDirectory = configurationData["Cache"]
-
     #Make sure the cache is safe
-    safe = search.verifyRepository(targetDirectory, configurationData["Branches"], configurationData["Architectures"])
-
-    if not safe:
-        print("=> Repository is not safe!")
-        exit(1)
-    else:
-        print("=> Repository appears safe. Use your best judgement though.")
+    safe = search.verifyRepository(targetDirectory, configurationData["Branches"])
 
     #Find list of new packages
-    newFiles = search.regular(targetDirectory, configurationData["Branches"], configurationData["Architectures"])
+    newFiles = search.regular(targetDirectory, configurationData["Branches"])
 
     if not newFiles:
         print("=> Nothing to do!")
         #exit(1)
 
     #Move new files to pool and make new symlinks
-    prepare.prepareCache(targetDirectory, newFiles, configurationData["Branches"], configurationData["Architectures"])
+    prepare.prepareCache(targetDirectory, newFiles, configurationData["Branches"])
 
     #Regenerate the DB's
-    prepare.generateDB(targetDirectory, configurationData["Branches"], configurationData["Architectures"])
+    prepare.generateDB(targetDirectory, configurationData["Branches"])
 
     #Update the state file
     prepare.modifyState(targetDirectory, configurationData["PackagerName"], configurationData["PackagerEmail"])
@@ -131,19 +118,48 @@ elif args.upload:
     sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
     #Update the server
-    updateServer.updateServer(sshClient, configurationData["Branches"], configurationData["PackagerName"], configurationData["PackagerEmail"])
+    updateServer.updateServer(sshClient, configurationData["PackagerName"], configurationData["PackagerEmail"], configurationData["Branches"])
+
+elif args.compare:
+    #Compare the branches
+    search.compareBranches(targetDirectory, args.compare, configurationData["Branches"])
 
 elif args.merge:
-    targetDirectory = configurationData["Cache"]
-    
     #Make sure the cache is safe
-    safe = search.verifyRepository(targetDirectory, configurationData["Branches"], configurationData["Architectures"])
+    safe = search.verifyRepository(targetDirectory, configurationData["Branches"])
 
-    if not safe:
-        print("=> Repository is not safe!")
-        exit(1)
-    else:
-        print("=> Repository appears safe. Use your best judgement though.")
+    #Show the changes to be made
+    search.compareBranches(targetDirectory, args.merge, configurationData["Branches"])
 
     #Merge the branches
     prepare.mergeBranches(targetDirectory, args.merge[0], args.merge[1])
+
+elif args.unlock:
+    #Instantiate the SSHClient object
+    sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
+
+    #Verify user is sure
+    print("=> Are you absolutely sure you would like to unlock the server? Someone may be uploading.")
+    verification = input("=[y/N]> ")
+
+    if verification != "y" and verification != "Y":
+        print("=> Exiting.")
+        exit(1)
+
+    #Unlock server
+    sshClient.unlockServer()
+
+elif args.lock:
+    #Instantiate the SSHClient object
+    sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
+
+    #Verify user is sure
+    print("=> Are you absolutely sure you would like to lock the server? You will need to manually unlock it.")
+    verification = input("=[y/N]> ")
+
+    if verification != "y" and verification != "Y":
+        print("=> Exiting.")
+        exit(1)
+
+    #lock server
+    sshClient.lockServer()
