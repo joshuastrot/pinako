@@ -1,6 +1,6 @@
 Pinako
 ======
-Pinako is a client to communicate over SSH and SFTP with a Winry Linux server. It initializes a client side repository, allows you to make yours changes to it, and then pushes it up to a server. There's many different features that make this easier, such as:
+Pinako is a client that utilizes Paramiko to communicate with a Winry Linux server. It initializes a client side repository, allows you to make yours changes to it, and then pushes it up to a server. There's many different features that make this easier, such as:
 
 * Moves all packages to a pool and utilizes symbolic links to save space
 * Ability to lock and unlock server so other packagers don't push at the same time
