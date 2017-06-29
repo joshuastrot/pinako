@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+#!/usr/bin/bash
 
 #   This file is part of Pinako - <http://github.com/winry-linux/pinako>
 #
@@ -17,21 +17,27 @@
 #   You should have received a copy of the GNU General Public License
 #   along with Pinako. If not, see <http://www.gnu.org/licenses/>.
 
-from os import system
+echo "Installing Pinako..."
 
-def banner():
-    #Display the banner
-    system("clear")
-    print("""
-         :########::'####:'##::: ##::::'###::::'##:::'##::'#######::
-         :##.... ##:. ##:: ###:: ##:::'## ##::: ##::'##::'##.... ##:
-         :##:::: ##:: ##:: ####: ##::'##:. ##:: ##:'##::: ##:::: ##:
-         :########::: ##:: ## ## ##:'##:::. ##: #####:::: ##:::: ##:
-         :##.....:::: ##:: ##. ####: #########: ##. ##::: ##:::: ##:
-         :##::::::::: ##:: ##:. ###: ##.... ##: ##:. ##:: ##:::: ##:
-         :##::::::::'####: ##::. ##: ##:::: ##: ##::. ##:. #######::
-         :.:::::::::....::..::::..::..:::::..::..::::..:::.......:::
+#Make sure in pinako directory
 
-        Author: Joshua Strot
-        Email:  joshuastrot@gmail.com
-    """)
+if [[ ! -d "data" ]] || [[ ! -d "pinako" ]]; then
+    echo "Not a valid pinako directory"
+    exit 1
+fi
+
+if [[ -d "/usr/share/pinako" ]] || [[ -f "/usr/bin/pinako" ]]; then
+    echo "Pinako already installed"
+    exit 1
+fi
+
+mkdir -p "/usr/bin"
+mkdir -p "/usr/share/pinako"
+mkdir -p "/usr/share/pinako/data"
+
+cp -r pinako/* /usr/share/pinako/
+cp -r data /usr/share/pinako
+mv /usr/share/pinako/pinako /usr/bin/pinako
+
+chmod +x /usr/bin/pinako
+chmod +x /usr/share/pinako/pinako.py

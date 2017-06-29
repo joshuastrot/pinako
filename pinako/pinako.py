@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
-#   This file is part of Pinako - <http://github.com/joshuastrot/pinako>
+#   This file is part of Pinako - <http://github.com/winry-linux/pinako>
 #
-#   Copyright 2017, Joshua Strot <joshuastrot@gmail.com>
+#   Copyright 2017, Joshua Strot <joshua@winrylinux.org>
 #
 #   Pinako is free software: you can redistribute it and/or modify
 #   it under the terms of the GNU General Public License as published by
@@ -47,6 +47,7 @@ parserGroup.add_argument('-l', "--lock", action="store_true", help="Force lock t
 
 #Output help if no argument is passed, exit
 if len(argv) == 1:
+    asciiArt.banner()
     parser.print_help()
     exit(1)
 
