@@ -19,7 +19,7 @@
 
 import tarfile
 
-from shutil import move
+from shutil import move, copytree, rmtree
 from os import path, remove, symlink
 from subprocess import call
 from glob import glob
@@ -83,3 +83,12 @@ def modifyState(target, packagerName, packagerEmail):
     except IOError as e:
         print("=> Error! Could not write to state.")
         exit(1)
+
+def mergeBranches(target, initialBranch, targetBranch):
+    """Merge one branch into another branch"""
+
+    print("=> Merging %(initialBranch)s -> %(targetBranch)s" % locals())
+
+    if path.exists("%(target)s/%(targetBranch)s" % locals()):
+        rmtree("%(target)s/%(targetBranch)s" % locals())
+    copytree("%(target)s/%(initialBranch)s" % locals(), "%(target)s/%(targetBranch)s" % locals(), symlinks=True)

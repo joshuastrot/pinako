@@ -40,7 +40,7 @@ parserGroup.add_argument('-d', "--download", action="store_true", help="Download
 parserGroup.add_argument('-s', "--show", action="store_true", help="Show the currently staged changes")
 parserGroup.add_argument('-v', "--verify", action="store_true", help="Verify the repository is safe to upload")
 parserGroup.add_argument('-u', "--upload", action="store_true", help="Upload current repository changes")
-parserGroup.add_argument('-m', "--merge", action="store_true", help="Merge one branch into another")
+parserGroup.add_argument('-m', "--merge", type=str, nargs=2, metavar=("SOURCE", "TARGET"), help="Merge one branch into another")
 parserGroup.add_argument('-c', "--compare", action="store_true", help="Compare one branch to another")
 
 #Output help if no argument is passed, exit
@@ -130,5 +130,20 @@ elif args.upload:
     #Instantiate the SSHClient object
     sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
-    #Update the server 
+    #Update the server
     updateServer.updateServer(sshClient, configurationData["Branches"], configurationData["PackagerName"], configurationData["PackagerEmail"])
+
+elif args.merge:
+    targetDirectory = configurationData["Cache"]
+    
+    #Make sure the cache is safe
+    safe = search.verifyRepository(targetDirectory, configurationData["Branches"], configurationData["Architectures"])
+
+    if not safe:
+        print("=> Repository is not safe!")
+        exit(1)
+    else:
+        print("=> Repository appears safe. Use your best judgement though.")
+
+    #Merge the branches
+    prepare.mergeBranches(targetDirectory, args.merge[0], args.merge[1])
