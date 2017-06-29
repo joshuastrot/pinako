@@ -63,7 +63,7 @@ Username: john
 
 Authors
 =======
-* Joshua Strot <joshua@winrylinux.org>
+* Joshua Strot - joshua@winrylinux.org
 
 License
 =======
