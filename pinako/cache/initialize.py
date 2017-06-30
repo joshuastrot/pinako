@@ -47,8 +47,9 @@ def loadFiles(sshClient, target, serverPath, branches = ["winry-stable", "winry-
     initializeCache(target, branches)
 
     #Grab list of pool files
-    poolFiles = sshClient.runCommand("ls %(serverPath)s/pool" % locals())[1].readlines()
-    poolFiles = [poolFiles.strip() for poolFiles in poolFiles]
+    poolFiles = sshClient.runCommand("find %(serverPath)s/pool -mindepth 1" % locals())[1].readlines()
+    poolFiles = [poolFiles.strip().split("/")[-1] for poolFiles in poolFiles]
+    print(poolFiles)
 
     #Populate the pool
     for file in poolFiles:
@@ -68,7 +69,8 @@ def loadFiles(sshClient, target, serverPath, branches = ["winry-stable", "winry-
             sshClient.down("%(target)s/%(branch)s/%(fileName)s" % locals(), file)
 
             #Make symbolic links for the databases
-            symlink("%(fileName)s" % locals(), "%(target)s/%(branch)s/%(linkName)s" % locals())
+            if fileName != ".htaccess":
+                symlink("%(fileName)s" % locals(), "%(target)s/%(branch)s/%(linkName)s" % locals())
 
         for file in linksList:
             fileName = file.split("/")[-1]

@@ -61,7 +61,7 @@ def verifyRepository(target, branches = ["winry-stable", "winry-testing"]):
                     safe = False
 
                 if not file.endswith(".xz") and not file.endswith(".sig") and not file.endswith(".gz") \
-                    and not file.endswith(".db") and not file.endswith(".files"):
+                    and not file.endswith(".db") and not file.endswith(".files") and file != ".htaccess":
 
                     print("    => Invalid file in cache: %(file)s" % locals())
                     print("        => Branch: %(branch)s" % locals())

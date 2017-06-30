@@ -32,8 +32,7 @@ def updateServer(sshClient, packagerName, packagerEmail, serverPath, branches = 
     for branch in branches:
         sshClient.runCommand("rm -r %(serverPath)s/%(branch)s" % locals())
 
-    #Update state file
-    print("=> Updating state file")
+    sshClient.runCommand("rm -r %(serverPath)s/pool" % locals())
     sshClient.runCommand("rm %(serverPath)s/state" % locals())
 
     #Extract the archive
