@@ -40,24 +40,24 @@ def initializeCache(target, branches = ["winry-stable", "winry-testing"]):
     for branch in branches:
             makedirs("%(target)s/%(branch)s" % locals(), exist_ok=True)
 
-def loadFiles(sshClient, target, branches = ["winry-stable", "winry-testing"]):
+def loadFiles(sshClient, target, serverPath, branches = ["winry-stable", "winry-testing"]):
     """Initialize the cache with it's needed directories"""
 
     #Initialize an empty cache
     initializeCache(target, branches)
 
     #Grab list of pool files
-    poolFiles = sshClient.runCommand("ls /srv/http/pool")[1].readlines()
+    poolFiles = sshClient.runCommand("ls %(serverPath)s/pool" % locals())[1].readlines()
     poolFiles = [poolFiles.strip() for poolFiles in poolFiles]
 
     #Populate the pool
     for file in poolFiles:
-        sshClient.down("%(target)s/pool/%(file)s" % locals(), "/srv/http/pool/%(file)s" % locals())
+        sshClient.down("%(target)s/pool/%(file)s" % locals(), "%(serverPath)s/pool/%(file)s" % locals())
 
     #Populate the branches
     for branch in branches:
-        filesList = sshClient.runCommand("find /srv/http/%(branch)s -mindepth 1 ! -type l" % locals())[1].readlines()
-        linksList = sshClient.runCommand("find /srv/http/%(branch)s -mindepth 1 -type l" % locals())[1].readlines()
+        filesList = sshClient.runCommand("find %(serverPath)s/%(branch)s -mindepth 1 ! -type l" % locals())[1].readlines()
+        linksList = sshClient.runCommand("find %(serverPath)s/%(branch)s -mindepth 1 -type l" % locals())[1].readlines()
         filesList = [files.strip() for files in filesList]
         linksList = [links.strip() for links in linksList]
 
@@ -72,5 +72,5 @@ def loadFiles(sshClient, target, branches = ["winry-stable", "winry-testing"]):
 
         for file in linksList:
             fileName = file.split("/")[-1]
-            if file.endswith(".xz"):
+            if file.endswith(".xz") or file.endswith(".sig"):
                 symlink("../../pool/%(fileName)s" % locals(), "%(target)s/%(branch)s/%(fileName)s" % locals())

@@ -58,7 +58,6 @@ def verifyRepository(target, branches = ["winry-stable", "winry-testing"]):
                 if file.endswith(".xz") and "".join((file, ".sig")) not in listdir("%(target)s/%(branch)s" % locals()):
                     print("    => No signature for package: %(file)s" % locals())
                     print("        => Branch: %(branch)s" % locals())
-                    print("        => Archictecture: %(arch)s" % locals())
                     safe = False
 
                 if not file.endswith(".xz") and not file.endswith(".sig") and not file.endswith(".gz") \

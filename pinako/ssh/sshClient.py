@@ -62,11 +62,11 @@ class sshClient():
         """Upload a file from the remote host"""
         self.scpClient.put(localPath, remotePath)
 
-    def lockServer(self, packagerName, packagerEmail):
+    def lockServer(self, packagerName, packagerEmail, serverPath):
         """Lock the server to perform uploads"""
         print("=> Locking the server")
 
-        (stdin, stdout, stderr) = self.runCommand("cat /srv/http/lock")
+        (stdin, stdout, stderr) = self.runCommand("cat %(serverPath)s/lock" % locals())
         if stdout and not stderr:
             print("=> Error! Database is already locked. Information:")
             for line in stdout.readlines():
@@ -81,10 +81,10 @@ class sshClient():
             print("=> Could not create a lock file.")
             exit(1)
 
-        self.up("/tmp/lock", "/srv/http/lock")
+        self.up("/tmp/lock", "%(serverPath)s/lock" % locals())
 
-    def unlockServer(self):
+    def unlockServer(self, serverPath):
         """Unlock the server"""
         print("=> Unlocking the server")
 
-        self.runCommand("rm /srv/http/lock")
+        self.runCommand("rm %(serverPath)s/lock" % locals())

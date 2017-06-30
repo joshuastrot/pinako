@@ -2,6 +2,7 @@ Branches: [winry-stable, winry-testing]
 Cache:
 SSHKey:
 ServerAddress:
+ServerSSHPath:
 Username:
 PackagerName:
 PackagerEmail:

@@ -17,32 +17,32 @@
 #   You should have received a copy of the GNU General Public License
 #   along with Pinako. If not, see <http://www.gnu.org/licenses/>.
 
-def updateServer(sshClient, packagerName, packagerEmail, branches = ["winry-stable", "winry-testing"]):
+def updateServer(sshClient, packagerName, packagerEmail, serverPath, branches = ["winry-stable", "winry-testing"]):
     """Update the server with new repository"""
 
     #Lock the database
-    sshClient.lockServer(packagerName, packagerEmail)
+    sshClient.lockServer(packagerName, packagerEmail, serverPath)
 
     #Upload the archive
     print("=> Uploading new pinako archive")
-    sshClient.up("/tmp/pinako-upload.tar", "/srv/http/pinako-upload.tar")
+    sshClient.up("/tmp/pinako-upload.tar", "%(serverPath)s/pinako-upload.tar" % locals())
 
     #Clear the Server
     print("=> Deleting old repository")
     for branch in branches:
-        sshClient.runCommand("rm -r /srv/http/%(branch)s" % locals())
+        sshClient.runCommand("rm -r %(serverPath)s/%(branch)s" % locals())
 
     #Update state file
     print("=> Updating state file")
-    sshClient.runCommand("rm /srv/http/state")
+    sshClient.runCommand("rm %(serverPath)s/state" % locals())
 
     #Extract the archive
     print("=> Extracting archive on server")
-    sshClient.runCommand("tar -xf /srv/http/pinako-upload.tar -C /srv/http")
+    sshClient.runCommand("tar -xf %(serverPath)s/pinako-upload.tar -C %(serverPath)s" % locals())
 
     #Remove the archive
     print("=> Removing server archive")
-    sshClient.runCommand("rm /srv/http/pinako-upload.tar")
+    sshClient.runCommand("rm %(serverPath)s/pinako-upload.tar" % locals())
 
     #Unlock the Server
-    sshClient.unlockServer()
+    sshClient.unlockServer(serverPath)

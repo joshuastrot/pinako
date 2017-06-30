@@ -72,7 +72,7 @@ if args.init:
     sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
     #Load all the files for the cache
-    initialize.loadFiles(sshClient, targetDirectory, configurationData["Branches"])
+    initialize.loadFiles(sshClient, targetDirectory, configurationData["ServerSSHPath"], configurationData["Branches"])
 
     #Write the new cache location
     configurationFile.writeConfiguration(targetDirectory, configurationData)
@@ -82,7 +82,7 @@ elif args.download:
     sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
     #Load all the files for the Cache
-    initialize.loadFiles(sshClient, targetDirectory, configurationData["Branches"])
+    initialize.loadFiles(sshClient, targetDirectory, configurationData["ServerSSHPath"], configurationData["Branches"])
 
 elif args.show:
     #Search the cache for new files
@@ -119,7 +119,7 @@ elif args.upload:
     sshClient = sshClient.sshClient(configurationData["Username"], configurationData["ServerAddress"], configurationData["SSHKey"])
 
     #Update the server
-    updateServer.updateServer(sshClient, configurationData["PackagerName"], configurationData["PackagerEmail"], configurationData["Branches"])
+    updateServer.updateServer(sshClient, configurationData["PackagerName"], configurationData["PackagerEmail"], configurationData["ServerSSHPath"], configurationData["Branches"])
 
 elif args.compare:
     #Compare the branches
@@ -148,7 +148,7 @@ elif args.unlock:
         exit(1)
 
     #Unlock server
-    sshClient.unlockServer()
+    sshClient.unlockServer(configurationData["ServerSSHPath"])
 
 elif args.lock:
     #Instantiate the SSHClient object
@@ -163,4 +163,4 @@ elif args.lock:
         exit(1)
 
     #lock server
-    sshClient.lockServer()
+    sshClient.lockServer(configurationData["PackagerName"], configurationData["PackagerEmail"], configurationData["ServerSSHPath"])
