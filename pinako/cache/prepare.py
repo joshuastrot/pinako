@@ -60,8 +60,8 @@ def generateDB(target, branches = ["winry-stable", "winry-testing"]):
         if path.exists("%(target)s/%(branch)s/%(branch)s.files.tar.gz" % locals()):
             remove("%(target)s/%(branch)s/%(branch)s.files.tar.gz" % locals())
 
-    for branch in branches:
         call(["repo-add", "-q", "%(target)s/%(branch)s/%(branch)s.db.tar.gz" % locals()] + glob("%(target)s/%(branch)s/*.xz" % locals()))
+        
         if path.exists("%(target)s/%(branch)s/%(branch)s.db.tar.gz.old" % locals()):
             remove("%(target)s/%(branch)s/%(branch)s.db.tar.gz.old" % locals())
         if path.exists("%(target)s/%(branch)s/%(branch)s.files.tar.gz.old" % locals()):
