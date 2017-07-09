@@ -23,6 +23,7 @@ from shutil import rmtree
 def initializeCache(target, branches = ["winry-stable", "winry-testing"]):
     """Initialize a cache with the default files."""
 
+    #Verify and remove cache
     if path.isdir(target):
         print("=> Cache already exists. Are you sure you'd like to remove it?")
         confirmation = input("=[Y/n]> ")
@@ -33,10 +34,11 @@ def initializeCache(target, branches = ["winry-stable", "winry-testing"]):
             print("=> Exiting.")
             exit(1)
 
-
+    #Make new cache
     makedirs("%(target)s" % locals(), exist_ok=True)
     makedirs("%(target)s/pool" % locals(), exist_ok=True)
 
+    #Make branches
     for branch in branches:
             makedirs("%(target)s/%(branch)s" % locals(), exist_ok=True)
 

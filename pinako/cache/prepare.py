@@ -32,6 +32,7 @@ def prepareCache(target, newPackages, branches = ["winry-stable", "winry-testing
 
     print("=> Moving files to pool and symlinking.")
 
+    #Loop over and move new packages to pool and replace with symlinks
     for package, packageSig in newPackages:
         packageName = package.split("/")[-1]
         packageSigName = packageSig.split("/")[-1]
@@ -54,6 +55,7 @@ def generateDB(target, branches = ["winry-stable", "winry-testing"]):
 
     print("=> Regenerating package Databases.")
 
+    #Regenerate databases
     for branch in branches:
         if path.exists("%(target)s/%(branch)s/%(branch)s.db.tar.gz" % locals()):
             remove("%(target)s/%(branch)s/%(branch)s.db.tar.gz" % locals())
@@ -61,7 +63,7 @@ def generateDB(target, branches = ["winry-stable", "winry-testing"]):
             remove("%(target)s/%(branch)s/%(branch)s.files.tar.gz" % locals())
 
         call(["repo-add", "-q", "%(target)s/%(branch)s/%(branch)s.db.tar.gz" % locals()] + glob("%(target)s/%(branch)s/*.xz" % locals()))
-        
+
         if path.exists("%(target)s/%(branch)s/%(branch)s.db.tar.gz.old" % locals()):
             remove("%(target)s/%(branch)s/%(branch)s.db.tar.gz.old" % locals())
         if path.exists("%(target)s/%(branch)s/%(branch)s.files.tar.gz.old" % locals()):
@@ -72,6 +74,7 @@ def compress(target):
 
     print("=> Compressing repository.")
 
+    #Compress the repository for uploading
     archive = tarfile.open("/tmp/pinako-upload.tar", "w")
     archive.add(target, arcname=".")
     archive.close()
@@ -81,6 +84,7 @@ def modifyState(target, packagerName, packagerEmail):
 
     print("=> Updating state file")
 
+    #Update the state file with packager information
     try:
         with open("%(target)s/state" % locals(), "w") as state:
             time = datetime.now().time()

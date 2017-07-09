@@ -24,6 +24,7 @@ def regular(target, branches = ["winry-stable", "winry-testing"]):
 
     print("=> Searching local database for additions")
 
+    #Iterate over the repository and look for new packages
     newPackages = []
     for branch in branches:
         for root, dirs, files in walk("%(target)s/%(branch)s" % locals()):
